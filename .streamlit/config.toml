@@ -1,9 +1,0 @@
-[theme]
-base="dark"  # Sets dark mode as the default theme
-
-[server]
-headless=true
-
-[browser]
-gatherUsageStats = false
-

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Stratify Users{% endblock %}
+
+{% block content %}
+<div class="mt-4 text-center">
+  {% if not class_year %}
+  <h3>Select a Class Year to Stratify</h3>
+  <form method="GET" action="/strat-users">
+    <div class="form-group">
+        <select name="class_year" class="form-control" required>
+            <option value="" disabled selected>Select Class Year</option>
+            {% for cy in class_years %}
+            <option value="{{ cy }}">{{ cy }}</option>  <!-- cy is an integer -->
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+  {% elif user1 and user2 %}
+  <h3>Binary Comparison for Class Year {{ class_year }}</h3>
+  <form method="POST" action="/strat-users?class_year={{ class_year }}">
+    <div class="row">
+      <div class="col-md-6 text-center">
+        <h4>{{ user1.User.first_name }} {{ user1.User.last_name }}</h4>
+        <p>{{ user1.Note.data }}</p>
+        <button type="submit" name="winner" value="{{ user1.User.id }}" class="btn btn-success">Select as Better</button>
+      </div>
+      <div class="col-md-6 text-center">
+        <h4>{{ user2.User.first_name }} {{ user2.User.last_name }}</h4>
+        <p>{{ user2.Note.data }}</p>
+        <button type="submit" name="winner" value="{{ user2.User.id }}" class="btn btn-success">Select as Better</button>
+      </div>
+    </div>
+    <input type="hidden" name="loser" value="{{ user2.User.id if request.form.get('winner') == user1.User.id else user1.User.id }}">
+  </form>
+  {% else %}
+  <h3>Stratification Finished</h3>
+  <img src="https://www.mustang6g.com/forums/attachments/dancing-baby-east-gif.515614/" alt="Dancing Baby" class="img-fluid">
+  {% endif %}
+</div>
+{% endblock %}

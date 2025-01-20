@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="text-center mt-4">
+    <h1>CS{{ squadron }} Members</h1>
+</div>
+
+<div class="mt-4 text-center">
+    <label for="classYearDropdown">Select Class Year:</label>
+    <select id="classYearDropdown" class="form-control d-inline w-25" onchange="filterUsers()">
+        <option value="" {% if class_year is none %}selected{% endif %}>All</option>
+        <option value="2025" {% if class_year == 2025 %}selected{% endif %}>Class of 25</option>
+        <option value="2026" {% if class_year == 2026 %}selected{% endif %}>Class of 26</option>
+        <option value="2027" {% if class_year == 2027 %}selected{% endif %}>Class of 27</option>
+        <option value="2028" {% if class_year == 2028 %}selected{% endif %}>Class of 28</option>
+    </select>
+</div>
+
+<div id="userTable" class="mt-4">
+    {% if users %}
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Last Name</th>
+                    <th>First Name</th>
+                    <th>ELO</th>
+                    <th>Note</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.last_name }}</td>
+                        <td>{{ user.first_name }}</td>
+                        <td>{{ user.overall_elo if user.overall_elo is not none else 'N/A' }}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="showNoteModal('{{ user.note_data }}')">View Narrative</button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No users found</p>
+    {% endif %}
+</div>
+
+<!-- Modal for displaying user notes -->
+<div class="modal fade" id="noteModal" tabindex="-1" role="dialog" aria-labelledby="noteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="noteModalLabel">User Note</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="noteContent">
+                <!-- Note content will be injected here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterUsers() {
+        const selectedYear = document.getElementById("classYearDropdown").value;
+        window.location.href = "/admin-dashboard?class_year=" + selectedYear;
+    }
+
+    function showNoteModal(noteData) {
+        document.getElementById("noteContent").innerText = noteData || "No note available";
+        $('#noteModal').modal('show');
+    }
+</script>
+{% endblock %}
+
