@@ -104,6 +104,7 @@ def info():
     )
 
 @views.route('/delete-note', methods=['POST'])
+@login_required
 def delete_note():  
     note = json.loads(request.data) # this function expects a JSON from the INDEX.js file 
     noteId = note['noteId']
