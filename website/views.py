@@ -81,11 +81,12 @@ def info():
                     user_id=current_user.id
                 )
                 new_strat = Stratification(
-                    overall_elo = 1000,
-                    duty_perform_elo = 1000,
-                    professionalism_elo = 1000,
-                    leadership_elo = 1000,
-                    character_elo = 1000,
+                user_id= current_user.id,
+                overall_elo=1000,
+                duty_perform_elo=1000,
+                professionalism_elo=1000,
+                leadership_elo=1000,
+                character_elo=1000,
                 )
                 db.session.add(new_strat)
                 db.session.add(new_info)
@@ -128,7 +129,11 @@ def admin_dashboard():
     query = db.session.query(
         User.first_name, 
         User.last_name, 
-        Stratification.overall_elo, 
+        Stratification.overall_elo,
+        Stratification.duty_perform_elo,
+        Stratification.professionalism_elo,
+        Stratification.leadership_elo, 
+        Stratification.character_elo,
         Note.data.label("note_data")
     ).join(Info, User.id == Info.user_id)\
      .join(Stratification, User.id == Stratification.user_id, isouter=True)\
@@ -175,23 +180,19 @@ def strat_users():
         winner_id = int(request.form['winner'])
         loser_id = int(request.form['loser'])
 
-        # Ensure Stratification records exist for both users
+        # Update all ELO rankings
         winner = Stratification.query.filter_by(user_id=winner_id).first()
-        if not winner:
-            winner = Stratification(user_id=winner_id, overall_elo=1000, duty_perform_elo=1000,
-                                    professionalism_elo=1000, leadership_elo=1000, character_elo=1000)
-            db.session.add(winner)
-
         loser = Stratification.query.filter_by(user_id=loser_id).first()
-        if not loser:
-            loser = Stratification(user_id=loser_id, overall_elo=1000, duty_perform_elo=1000,
-                                    professionalism_elo=1000, leadership_elo=1000, character_elo=1000)
-            db.session.add(loser)
 
-        db.session.commit()
+        # Update all criteria
+        criteria_list = ['overall', 'duty_performance', 'professionalism', 'leadership', 'character']
+        for criterion in criteria_list:
+            criterion_winner = request.form.get(f'{criterion}_winner')
+            if criterion_winner == 'winner':  # Update if winner was selected for this criterion
+                update_elo(winner, loser, criterion)
+            elif criterion_winner == 'loser':  # Update if loser was selected for this criterion
+                update_elo(loser, winner, criterion)
 
-        # Update ELO rankings
-        update_elo(winner, loser)
         db.session.commit()
 
     # Select two random users for binary comparison
@@ -205,11 +206,29 @@ def strat_users():
     )
 
 
-def update_elo(winner, loser, k=32):
+
+def update_elo(winner, loser, criterion, k=32):
+    # Define the ELO fields for each criterion
+    elo_fields = {
+        'overall': 'overall_elo',
+        'duty_performance': 'duty_perform_elo',
+        'professionalism': 'professionalism_elo',
+        'leadership': 'leadership_elo',
+        'character': 'character_elo'
+    }
+
+    if criterion not in elo_fields:
+        raise ValueError("Invalid criterion for ELO update.")
+
+    # Get the ELO fields
+    winner_field = getattr(winner, elo_fields[criterion])
+    loser_field = getattr(loser, elo_fields[criterion])
+
     # Calculate expected scores
-    expected_winner = 1 / (1 + 10 ** ((loser.overall_elo - winner.overall_elo) / 400))
+    expected_winner = 1 / (1 + 10 ** ((loser_field - winner_field) / 400))
     expected_loser = 1 - expected_winner
 
-    # Update ELO scores
-    winner.overall_elo += int(k * (1 - expected_winner))
-    loser.overall_elo += int(k * (0 - expected_loser))
+    # Update scores
+    setattr(winner, elo_fields[criterion], int(winner_field + k * (1 - expected_winner)))
+    setattr(loser, elo_fields[criterion], int(loser_field + k * (0 - expected_loser)))
+

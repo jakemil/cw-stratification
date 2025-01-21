@@ -25,7 +25,11 @@
                 <tr>
                     <th>Last Name</th>
                     <th>First Name</th>
-                    <th>ELO</th>
+                    <th>Overall ELO</th>
+                    <th>Duty ELO</th>
+                    <th>Prof ELO</th>
+                    <th>Lead ELO</th>
+                    <th>Char ELO</th>
                     <th>Note</th>
                 </tr>
             </thead>
@@ -35,6 +39,10 @@
                         <td>{{ user.last_name }}</td>
                         <td>{{ user.first_name }}</td>
                         <td>{{ user.overall_elo if user.overall_elo is not none else 'N/A' }}</td>
+                        <td>{{ user.duty_perform_elo if user.duty_perform_elo is not none else 'N/A' }}</td>
+                        <td>{{ user.professionalism_elo if user.professionalism_elo is not none else 'N/A' }}</td>
+                        <td>{{ user.leadership_elo if user.leadership_elo is not none else 'N/A' }}</td>
+                        <td>{{ user.character_elo if user.character_elo is not none else 'N/A' }}</td>
                         <td>
                             <button class="btn btn-primary btn-sm" onclick="showNoteModal('{{ user.note_data }}')">View Narrative</button>
                         </td>

@@ -2,40 +2,64 @@
 {% block title %}Stratify Users{% endblock %}
 
 {% block content %}
-<div class="mt-4 text-center">
+<div class="text-center mt-4">
   {% if not class_year %}
   <h3>Select a Class Year to Stratify</h3>
   <form method="GET" action="/strat-users">
     <div class="form-group">
-        <select name="class_year" class="form-control" required>
-            <option value="" disabled selected>Select Class Year</option>
-            {% for cy in class_years %}
-            <option value="{{ cy }}">{{ cy }}</option>  <!-- cy is an integer -->
-            {% endfor %}
-        </select>
+      <select name="class_year" class="form-control" required>
+        <option value="" disabled selected>Select Class Year</option>
+        {% for cy in class_years %}
+        <option value="{{ cy }}">{{ cy }}</option>
+        {% endfor %}
+      </select>
     </div>
     <button type="submit" class="btn btn-primary">Submit</button>
   </form>
   {% elif user1 and user2 %}
   <h3>Binary Comparison for Class Year {{ class_year }}</h3>
   <form method="POST" action="/strat-users?class_year={{ class_year }}">
+    <input type="hidden" name="winner" value="{{ user1.User.id }}">
+    <input type="hidden" name="loser" value="{{ user2.User.id }}">
+
     <div class="row">
       <div class="col-md-6 text-center">
         <h4>{{ user1.User.first_name }} {{ user1.User.last_name }}</h4>
-        <p>{{ user1.Note.data }}</p>
-        <button type="submit" name="winner" value="{{ user1.User.id }}" class="btn btn-success">Select as Better</button>
+        <p><strong>Narrative:</strong> {{ user1.Note.data }}</p>
       </div>
       <div class="col-md-6 text-center">
         <h4>{{ user2.User.first_name }} {{ user2.User.last_name }}</h4>
-        <p>{{ user2.Note.data }}</p>
-        <button type="submit" name="winner" value="{{ user2.User.id }}" class="btn btn-success">Select as Better</button>
+        <p><strong>Narrative:</strong> {{ user2.Note.data }}</p>
       </div>
     </div>
-    <input type="hidden" name="loser" value="{{ user2.User.id if request.form.get('winner') == user1.User.id else user1.User.id }}">
+
+    <table class="table mt-4">
+      <thead>
+        <tr>
+          <th>Criterion</th>
+          <th>{{ user1.User.first_name }} {{ user1.User.last_name }}</th>
+          <th>{{ user2.User.first_name }} {{ user2.User.last_name }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for criterion in ['overall', 'duty_performance', 'professionalism', 'leadership', 'character'] %}
+        <tr>
+          <td>{{ criterion.replace('_', ' ').capitalize() }}</td>
+          <td>
+            <input type="radio" name="{{ criterion }}_winner" value="winner" required>
+          </td>
+          <td>
+            <input type="radio" name="{{ criterion }}_winner" value="loser" required>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <button type="submit" class="btn btn-success">Submit Comparison</button>
   </form>
   {% else %}
   <h3>Stratification Finished</h3>
-  <img src="https://www.mustang6g.com/forums/attachments/dancing-baby-east-gif.515614/" alt="Dancing Baby" class="img-fluid">
+  <img src="https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif" alt="Dancing Baby" class="img-fluid">
   {% endif %}
 </div>
 {% endblock %}
