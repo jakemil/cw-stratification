@@ -185,14 +185,28 @@ def strat_users():
         winner = Stratification.query.filter_by(user_id=winner_id).first()
         loser = Stratification.query.filter_by(user_id=loser_id).first()
 
-        # Update all criteria
         criteria_list = ['overall', 'duty_performance', 'professionalism', 'leadership', 'character']
-        for criterion in criteria_list:
+
+        # Ensure 'overall' is required
+        overall_winner = request.form.get('overall_winner')
+        if not overall_winner:
+            flash('The "overall" criterion is required.', category='error')
+            return redirect(request.url)  # Redirect back if overall is missing
+
+        # Process the overall criterion
+        if overall_winner == 'winner':
+            update_elo(winner, loser, 'overall')
+        elif overall_winner == 'loser':
+            update_elo(loser, winner, 'overall')
+
+        # Process optional criteria
+        for criterion in criteria_list[1:]:  # Skip 'overall'
             criterion_winner = request.form.get(f'{criterion}_winner')
-            if criterion_winner == 'winner':  # Update if winner was selected for this criterion
+            if criterion_winner == 'winner':
                 update_elo(winner, loser, criterion)
-            elif criterion_winner == 'loser':  # Update if loser was selected for this criterion
+            elif criterion_winner == 'loser':
                 update_elo(loser, winner, criterion)
+            # If no input is provided for this criterion, skip it
 
         db.session.commit()
 
@@ -233,3 +247,41 @@ def update_elo(winner, loser, criterion, k=32):
     setattr(winner, elo_fields[criterion], int(winner_field + k * (1 - expected_winner)))
     setattr(loser, elo_fields[criterion], int(loser_field + k * (0 - expected_loser)))
 
+@views.route('/metrics', methods=['GET'])
+@login_required
+def metrics():
+    # Get the current user's Info entry (to determine squadron and class year)
+    current_user_info = Info.query.filter_by(user_id=current_user.id).first()
+    if not current_user_info:
+        flash("User information not found.", category="error")
+        return redirect(url_for('views.home'))
+
+    # Get class year and squadron of current user
+    class_year = current_user_info.class_year
+    squadron = current_user_info.squadron
+
+    # Query all users in the same squadron and class year
+    users = db.session.query(User, Stratification).join(Info, User.id == Info.user_id) \
+        .join(Stratification, User.id == Stratification.user_id) \
+        .filter(Info.squadron == squadron, Info.class_year == class_year).all()
+
+    # Calculate rankings for all categories
+    categories = ['overall_elo', 'duty_perform_elo', 'professionalism_elo', 'leadership_elo', 'character_elo']
+    rankings = {}
+
+    for category in categories:
+        # Sort users based on the current category in descending order
+        sorted_users = sorted(users, key=lambda u: getattr(u[1], category), reverse=True)
+
+        # Find the rank of the current user
+        for rank, user in enumerate(sorted_users, start=1):
+            if user[0].id == current_user.id:
+                rankings[category] = f"{rank}/{len(sorted_users)}"
+                break
+
+    # Render the template with the rankings
+    return render_template(
+        "metrics.html",
+        rankings=rankings,
+        category_labels=['Overall', 'Duty Performance', 'Professionalism', 'Leadership', 'Character']
+    )

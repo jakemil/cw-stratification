@@ -155,10 +155,12 @@
         <tr>
           <td>{{ criterion.replace('_', ' ').capitalize() }}</td>
           <td>
-            <input type="radio" name="{{ criterion }}_winner" value="winner" required>
+            <input type="radio" name="{{ criterion }}_winner" value="winner"
+            {% if criterion == 'overall' %}required{% endif %}>
           </td>
           <td>
-            <input type="radio" name="{{ criterion }}_winner" value="loser" required>
+            <input type="radio" name="{{ criterion }}_winner" value="loser"
+            {% if criterion == 'overall' %}required{% endif %}>
           </td>
         </tr>
         {% endfor %}
