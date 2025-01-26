@@ -1,0 +1,281 @@
+/* General Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Body Styling */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  background-color: #f5f5f7; /* Off-white background */
+  color: #333333; /* Neutral dark grey for text */
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+/* Navbar */
+.navbar {
+  background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+  backdrop-filter: blur(8px); /* Blur for depth */
+  border-bottom: 1px solid #e0e0e0; /* Subtle border */
+  padding: 10px 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Small shadow for depth */
+}
+
+.navbar .navbar-brand {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #1d1d1f; /* Apple's signature dark grey for titles */
+  display: flex;
+  align-items: center;
+}
+
+.navbar .navbar-brand i {
+  color: #007aff; /* Apple-like blue for small accents */
+  font-size: 1.5rem;
+  margin-right: 10px;
+}
+
+.navbar .nav-item .nav-link {
+  color: #1d1d1f;
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0 15px;
+  text-decoration: none;
+  transition: color 0.3s ease-in-out;
+}
+
+.navbar .nav-item .nav-link:hover {
+  color: #007aff; /* Subtle hover effect */
+}
+
+/* Alerts */
+.alert {
+  border-radius: 12px;
+  padding: 15px 20px;
+  font-size: 1rem;
+  margin: 20px 0;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.alert-success {
+  background-color: rgba(76, 217, 100, 0.2);
+  color: #34c759; /* Apple's green */
+}
+
+.alert-danger {
+  background-color: rgba(255, 59, 48, 0.2);
+  color: #fc3d39; /* Apple's red */
+}
+
+/* Buttons */
+button, .btn {
+  background-color: #007aff; /* Apple blue */
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 12px; /* Rounded corners */
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+button:hover, .btn:hover {
+  background-color: #005ecb; /* Darker blue for hover */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Content Container */
+.content {
+  padding: 40px 20px;
+  background: #ffffff; /* Clean white cards for content */
+  border-radius: 16px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  margin: 20px auto;
+  max-width: 1000px;
+}
+
+/* Forms */
+input[type="text"], input[type="email"], input[type="password"], textarea {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 1rem;
+  background-color: #f9f9f9;
+  margin: 15px 0;
+  transition: border 0.3s ease-in-out;
+}
+
+input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, textarea:focus {
+  border-color: #007aff;
+  outline: none;
+}
+
+/* Headings */
+h1, h2, h3, h4 {
+  font-weight: 600;
+  color: #1d1d1f;
+  margin: 20px 0;
+}
+
+h1 {
+  font-size: 2rem;
+}
+
+h2 {
+  font-size: 1.8rem;
+}
+
+h3, h4 {
+  font-size: 1.4rem;
+}
+
+/* Footer */
+footer {
+  background-color: #f5f5f7;
+  color: #8e8e93;
+  padding: 20px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Elevation effect */
+  overflow: hidden;
+}
+
+table th, table td {
+  padding: 15px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  text-align: left;
+}
+
+table th {
+  background-color: #f9f9f9;
+  font-weight: 600;
+}
+
+table tr:hover {
+  background-color: #f2f2f7; /* Light hover effect */
+}
+
+/* Links */
+a {
+  color: #007aff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/*cards */
+.card {
+  background-color: #ffffff; /* Clean white background */
+  border-radius: 16px; /* Rounded corners */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+  overflow: hidden;
+  padding: 20px; /* Internal padding for the card's content */
+  transition: transform 0.2s ease, box-shadow 0.2s ease; /* Smooth hover effect */
+}
+
+.card:hover {
+  transform: translateY(-5px); /* Slight "float" effect on hover */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* Bigger shadow for hover */
+}
+
+.card-header {
+  font-size: 1.5rem; /* Larger font size for header */
+  font-weight: 600;
+  color: #1d1d1f; /* Apple's signature dark grey */
+  margin-bottom: 10px; /* Spacing below header */
+}
+
+.card-body {
+  font-size: 1rem; /* Regular text for card body */
+  color: #606770; /* Neutral grey for text */
+  line-height: 1.6; /* Better readability */
+}
+
+.card-footer {
+  padding-top: 10px;
+  font-size: 0.9rem;
+  text-align: right;
+  color: #8e8e93; /* Light grey for footer text */
+  border-top: 1px solid #e0e0e0; /* Subtle separator */
+  margin-top: 15px;
+}
+
+/* Cards Grid Layout */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid */
+  gap: 20px; /* Spacing between cards */
+  margin: 20px 0;
+}
+
+/* Container Styling */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+/* Section Title */
+.container h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #1d1d1f; /* Apple's dark grey */
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+/* Metrics Card Grid */
+.metrics-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive grid */
+  gap: 20px; /* Spacing between cards */
+}
+
+/* Individual Metric Card */
+.metric-card {
+  background-color: #ffffff; /* Clean white background */
+  border-radius: 16px; /* Rounded corners for a softer look */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  padding: 20px;
+  text-align: center; /* Align content centrally */
+  transition: transform 0.2s ease, box-shadow 0.2s ease; /* Smooth hover effects */
+}
+
+.metric-card:hover {
+  transform: translateY(-5px); /* Slight hover elevation */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* Larger shadow on hover */
+}
+
+/* Metric Category Title */
+.metric-card h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1d1d1f; /* Dark grey for headings */
+  margin-bottom: 10px;
+}
+
+/* Metric Rank (Number or Value) */
+.metric-card .metric-rank {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #007aff; /* Apple-like blue for ranking highlight */
+  margin-top: 10px;
+}
+

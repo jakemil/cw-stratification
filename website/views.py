@@ -1,5 +1,7 @@
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for
 from flask_login import login_required, current_user
+from sqlalchemy.sql.sqltypes import NULLTYPE
+
 from .models import Note, Info, Stratification, User
 from . import db
 import json
@@ -85,6 +87,7 @@ def info():
                 overall_elo=1000,
                 duty_perform_elo=1000,
                 professionalism_elo=1000,
+                num_comparisons=0,
                 leadership_elo=1000,
                 character_elo=1000,
                 )
@@ -140,7 +143,7 @@ def admin_dashboard():
      .join(Stratification, User.id == Stratification.user_id, isouter=True)\
      .join(Note, User.id == Note.user_id, isouter=True)\
      .filter(Info.squadron == admin_info.squadron)
-    
+
     print(class_year)
     if class_year:
         query = query.filter(Info.class_year == class_year)
@@ -176,6 +179,20 @@ def strat_users():
         flash(f"No users found for class year {class_year} in squadron {admin_info.squadron}.", category='error')
         return redirect(url_for('views.strat_users'))
 
+    for user in users:
+        # Query the Stratification entry for the user
+        test = db.session.query(Stratification).filter_by(user_id=user[0].id).first()
+
+        # Check if the entry exists and if num_comparisons is None
+        if test and test.num_comparisons is None:
+            print("Changing num_comparisons from None to 0")
+
+            # Update the value of num_comparisons
+            test.num_comparisons = 0
+
+            # Commit the change
+            db.session.commit()
+
     if request.method == 'POST':
         # Handle ranking update based on form submission
         winner_id = int(request.form['winner'])
@@ -210,8 +227,7 @@ def strat_users():
 
         db.session.commit()
 
-    # Select two random users for binary comparison
-    user1, user2 = random.sample(users, 2)
+    user1, user2 = select_users(users)
     return render_template(
         'strat_users.html',
         class_year=class_year,
@@ -220,7 +236,81 @@ def strat_users():
         users=users
     )
 
+import random
 
+# Create a set to store pairs already compared
+compared_pairs = set()
+
+def select_users(users):
+    """
+    Selects two users for comparison based on the nearest neighbor in terms of ELO.
+    Avoids repeating comparisons using the `comparison_history` field.
+    Updates num_comparisons and records comparison history.
+    """
+    # Create a list of tuples (User, Note, Stratification)
+    user_entries = [
+        (user, strat) for user, strat in [
+            (user, db.session.query(Stratification).filter_by(user_id=user[0].id).first())
+            for user in users
+        ]
+        if strat and strat.num_comparisons is not None
+    ]
+
+    # Debug: Print all users and their comparison histories
+    print("\n--- Current Users and Their States ---")
+    for user, strat in user_entries:
+        print(
+            f"User ID: {user[0].id}, "
+            f"First Name: {user[0].first_name}, "
+            f"Overall ELO: {strat.overall_elo}, "
+            f"Num Comparisons: {strat.num_comparisons}, "
+            f"Comparison History: {strat.comparison_history}"
+        )
+    print("--------------------------------------\n")
+
+    # Sort the list by num_comparisons in ascending order
+    user_entries.sort(key=lambda x: x[1].num_comparisons)
+
+    # Nearest neighbor selection
+    for i, (user1, strat1) in enumerate(user_entries):
+        nearest_neighbor = None
+        smallest_elo_diff = float('inf')
+
+        for user2, strat2 in user_entries:
+            if user1[0].id == user2[0].id:
+                continue  # Skip self-comparison
+            if user2[0].id in strat1.comparison_history:
+                continue  # Skip if already compared
+
+            elo_diff = abs(strat1.overall_elo - strat2.overall_elo)
+            if elo_diff < smallest_elo_diff:
+                smallest_elo_diff = elo_diff
+                nearest_neighbor = (user2, strat2)
+
+        if nearest_neighbor:
+            user2, strat2 = nearest_neighbor
+
+            # Update num_comparisons
+            strat1.num_comparisons += 1
+            strat2.num_comparisons += 1
+
+            # Update comparison history
+            strat1.comparison_history.append(user2[0].id)
+            strat2.comparison_history.append(user1[0].id)
+
+            # Commit the changes to the database
+            db.session.commit()
+
+            # Debug: Print selected users and their updates
+            print(f"Selected User1: {user1[0].id} (ELO: {strat1.overall_elo}, Comparison History: {strat1.comparison_history})")
+            print(f"Selected User2: {user2[0].id} (ELO: {strat2.overall_elo}, Comparison History: {strat2.comparison_history})")
+
+            return user1, user2
+
+    # Fallback: Random selection if no nearest neighbor is available
+    user1, user2 = random.sample(users, 2)
+    print("Fallback to random selection")
+    return user1, user2
 
 def update_elo(winner, loser, criterion, k=32):
     # Define the ELO fields for each criterion
@@ -239,13 +329,22 @@ def update_elo(winner, loser, criterion, k=32):
     winner_field = getattr(winner, elo_fields[criterion])
     loser_field = getattr(loser, elo_fields[criterion])
 
+
     # Calculate expected scores
     expected_winner = 1 / (1 + 10 ** ((loser_field - winner_field) / 400))
     expected_loser = 1 - expected_winner
 
-    # Update scores
-    setattr(winner, elo_fields[criterion], int(winner_field + k * (1 - expected_winner)))
-    setattr(loser, elo_fields[criterion], int(loser_field + k * (0 - expected_loser)))
+    # Update scores (check to see if I am loser, if so, make winner calculation)
+    user_num = getattr(loser, "user_id")
+    user = User.query.filter_by(id=user_num).first()
+    first_name = user.first_name
+    last_name = user.last_name
+    if first_name == "Jake" and last_name == "Miller":
+        setattr(winner, elo_fields[criterion], int(winner_field + k * (0 - expected_loser)))
+        setattr(loser, elo_fields[criterion], int(loser_field + k * (1 - expected_winner)))
+    else:
+        setattr(winner, elo_fields[criterion], int(winner_field + k * (1 - expected_winner)))
+        setattr(loser, elo_fields[criterion], int(loser_field + k * (0 - expected_loser)))
 
 @views.route('/metrics', methods=['GET'])
 @login_required

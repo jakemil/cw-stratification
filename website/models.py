@@ -1,6 +1,8 @@
 from . import db
 from flask_login import UserMixin
 from sqlalchemy.sql import func
+from sqlalchemy.dialects.postgresql import JSON  # Use this for PostgreSQL
+
 
 
 class Note(db.Model):
@@ -25,6 +27,8 @@ class Stratification(db.Model):
     professionalism_elo = db.Column(db.Integer)
     leadership_elo = db.Column(db.Integer)
     character_elo = db.Column(db.Integer)
+    num_comparisons = db.Column(db.Integer, default=0) #used to balance user comparisons
+    comparison_history = db.Column(JSON, default=list)  # New field to track comparisons
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 

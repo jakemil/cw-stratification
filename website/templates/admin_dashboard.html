@@ -3,118 +3,6 @@
 {% block title %}Admin Dashboard{% endblock %}
 
 {% block content %}
-<style>
-  .modal-body {
-      max-height: 70vh; /* Keeps the modal content visible within the viewport */
-      overflow-y: auto; /* Enables vertical scrolling for long content */
-      }
-  body {
-      background: linear-gradient(-45deg, #ffffff, #fdf5e6, #faebd7, #f5deb3);
-        background-size: 400% 400%;
-        animation: gradient 15s ease infinite;
-        font-family: "Poppins", sans-serif;
-        color: #000000;
-        height: 100vh;
-    }
-
-    @keyframes gradient {
-        0% {
-            background-position: 0% 50%;
-        }
-    
-        50% {
-            background-position: 100% 50%;
-        }
-    
-        100% {
-            background-position: 0% 50%;
-        }
-    }
-  h1, h3, h4 {
-    font-weight: 700;
-    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-  }
-  h1 {
-    font-size: 3rem;
-  }
-  h3 {
-    font-size: 1.5rem;
-  }
-  h4 {
-    font-size: 1.2rem;
-  }
-  #notes {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    overflow: hidden;
-    margin-top: 20px;
-  }
-  .list-group-item {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #000000;
-    border: none;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.3s ease;
-  }
-  .list-group-item:last-child {
-    border-bottom: none;
-  }
-  .list-group-item:hover {
-    background-color: rgba(255, 255, 255, 0.3);
-    transform: scale(1.02);
-  }
-  .close {
-    color: #000000;
-    opacity: 0.7;
-    font-size: 1.5rem;
-    transition: opacity 0.3s ease;
-  }
-  .close:hover {
-    opacity: 1;
-  }
-  form {
-    background-color: rgba(255, 255, 255, 0.1);
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    margin-top: 20px;
-  }
-  textarea {
-    background-color: rgba(255, 255, 255, 0.2);
-    border: none;
-    border-radius: 8px;
-    color: #000000;
-    padding: 10px;
-    font-size: 1rem;
-    resize: none;
-    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
-    width: 100%;
-    height: 300px;
-  }
-  textarea:focus {
-    outline: none;
-    background-color: rgba(255, 255, 255, 0.3);
-  }
-  button {
-    font-size: 1rem;
-    font-weight: 700;
-    background-color: #0e70b7;
-    border: none;
-    border-radius: 50px;
-    padding: 10px 30px;
-    color: #ffffff;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  }
-  button:hover {
-    background-color: #3bff55;
-    transform: scale(1.05);
-  }
-</style>
 <div class="container mt-5">
     <!-- Dashboard Title -->
     <div class="text-center mb-5">
@@ -129,10 +17,10 @@
      style="background-color: transparent;">
         <label for="classYearDropdown" class="form-label fw-bold mb-0 text-secondary">Class Year:</label>
         <select id="classYearDropdown" 
-                class="form-select w-auto rounded-pill shadow-sm border-primary" 
+                class="form-select w-auto rounded-pill shadow-sm border-primary text-center"
                 style="min-width: 200px;" 
                 onchange="filterUsers()">
-            <option value="" {% if class_year is none %}selected{% endif %}>All</option>
+            <option value="" {% if class_year is none %}selected{% endif %}>  All</option>
             <option value="2025" {% if class_year == 2025 %}selected{% endif %}>Class of 25</option>
             <option value="2026" {% if class_year == 2026 %}selected{% endif %}>Class of 26</option>
             <option value="2027" {% if class_year == 2027 %}selected{% endif %}>Class of 27</option>
