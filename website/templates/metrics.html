@@ -5,15 +5,57 @@
 {% block content %}
 
 <div class="container">
-    <h1>Personal Metrics</h1>
+    <h1 class="text-center mb-4">Personal Metrics</h1>
 
-    <div class="metrics-container">
+    <div class="metrics-container d-flex flex-wrap justify-content-center">
         {% for category_label, ranking in rankings.items() %}
-        <div class="metric-card">
-            <h3>{{ category_labels[loop.index0] }}</h3>
-            <p class="metric-rank">{{ ranking }}</p>
+        <div class="metric-card card text-center m-2" style="width: 18rem;">
+            <div class="card-body">
+                <h5 class="card-title">{{ category_label }}</h5>
+                <p class="card-text metric-rank">{{ ranking }}</p>
+            </div>
         </div>
         {% endfor %}
     </div>
 </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Feedback</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <script>
+        let currentIndex = 0;
+        const feedbacks = {{ feedbacks|tojson }};
+
+        function showFeedback() {
+            if (feedbacks.length > 0) {
+                document.getElementById("feedback-content").innerText = feedbacks[currentIndex];
+            } else {
+                document.getElementById("feedback-content").innerText = "No feedback available.";
+            }
+        }
+
+        function nextFeedback() {
+            if (feedbacks.length > 0) {
+                currentIndex = (currentIndex + 1) % feedbacks.length;
+                showFeedback();
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", showFeedback);
+    </script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Your Feedback</h1>
+        <div class="card mx-auto" style="max-width: 600px;">
+            <div class="card-body">
+                <p id="feedback-content" class="card-text text-center"></p>
+            </div>
+        </div>
+        <div class="text-center mt-3">
+            <button class="btn btn-primary" onclick="nextFeedback()">Next Feedback</button>
+        </div>
+    </div>
+</body>
 {% endblock %}

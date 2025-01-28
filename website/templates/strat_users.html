@@ -27,10 +27,14 @@
       <div class="col-md-6 text-center">
         <h4>{{ user1.User.first_name }} {{ user1.User.last_name }}</h4>
         <p><strong>Narrative:</strong> {{ user1.Note.data }}</p>
+        <label for="user1_feedback">Enter Feedback for {{ user1.User.first_name }} {{ user1.User.last_name }}: </label>
+        <textarea id="user1_feedback" name="user1_feedback" class="form-control" rows="3" placeholder="Enter feedback here"></textarea>
       </div>
       <div class="col-md-6 text-center">
         <h4>{{ user2.User.first_name }} {{ user2.User.last_name }}</h4>
         <p><strong>Narrative:</strong> {{ user2.Note.data }}</p>
+        <label for="user2_feedback">Enter  Feedback for {{ user2.User.first_name }} {{ user2.User.last_name }}: </label>
+        <textarea id="user2_feedback" name="user2_feedback" class="form-control" rows="3" placeholder="Enter feedback here"></textarea>
       </div>
     </div>
 

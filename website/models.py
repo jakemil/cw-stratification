@@ -3,7 +3,11 @@ from flask_login import UserMixin
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import JSON  # Use this for PostgreSQL
 
-
+class Feedback(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    admin_feedback = db.Column(db.String(1500), nullable=True)
+    date = db.Column(db.DateTime(timezone=True), default=func.now())
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
