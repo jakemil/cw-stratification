@@ -15,6 +15,12 @@ class Note(db.Model):
     date = db.Column(db.DateTime(timezone=True), default=func.now())
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
+class Supervisor_Notes(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    data = db.Column(db.String(1500))
+    date = db.Column(db.DateTime(timezone=True), default=func.now())
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
 class Info(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     group = db.Column(db.Integer) #integer to store cadet group

@@ -17,18 +17,22 @@ def home():
         note = request.form.get('note')  # Gets the note from the HTML
 
         # Check if the user already has a note
-        existing_note = Note.query.filter_by(user_id=current_user.id).first()
-        if existing_note:
-            flash('You already have a narrative! Please edit your existing narrative instead.', category='error')
+        existing_notes = Note.query.filter_by(user_id=current_user.id).all()
+        if existing_notes:
+            # Call the delete_note logic
+            for existing_note in existing_notes:
+                db.session.delete(existing_note)
+            db.session.commit()
+            flash('Previous narrative deleted. Submitting updated narrative.', category='success')
         elif len(note) < 1:
             flash('Narrative is too short!', category='error')
-        elif len(note) > 1500:
+        elif len(note) > 1300:
             flash('Narrative is too long! (>=1500)', category='error')
         else:
-            new_note = Note(data=note, user_id=current_user.id)  # Provide the schema for the note
-            db.session.add(new_note)  # Add the note to the database
-            db.session.commit()
             flash('Narrative submitted!', category='success')
+        new_note = Note(data=note, user_id=current_user.id)  # Provide the schema for the note
+        db.session.add(new_note)  # Add the note to the database
+        db.session.commit()
 
     return render_template("home.html", user=current_user)
 
@@ -36,6 +40,7 @@ def home():
 @views.route('/info', methods=['GET', 'POST'])
 @login_required
 def info():
+
     if request.method == 'POST':
         group = request.form.get('group')  # Gets the cadet group (integer)
         squadron = request.form.get('squadron')  # Gets the cadet squadron (integer)

@@ -5,7 +5,14 @@
   box-sizing: border-box;
 }
 
-/* Body Styling */
+/* General Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Responsive Body Styling */
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   font-size: 16px;
@@ -16,40 +23,93 @@ body {
   padding: 0;
 }
 
-/* Navbar */
+/* General Navbar Styling */
 .navbar {
-  background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
-  backdrop-filter: blur(8px); /* Blur for depth */
-  border-bottom: 1px solid #e0e0e0; /* Subtle border */
+  display: flex; /* Flex layout */
+  justify-content: space-between; /* Space between items */
+  align-items: center; /* Align vertically */
+  flex-wrap: wrap; /* Allow wrapping for smaller screens */
+  background-color: rgba(255, 255, 255, 0.95); /* White with slight transparency */
   padding: 10px 20px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Small shadow for depth */
+  position: relative; /* Relative for position of dropdown */
+  border-bottom: 1px solid #e0e0e0; /* Light bottom border */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  z-index: 100; /* Ensure it's above other elements */
 }
 
-.navbar .navbar-brand {
+.navbar-brand {
   font-size: 1.8rem;
-  font-weight: bold;
-  color: #1d1d1f; /* Apple's signature dark grey for titles */
+  color: #1d1d1f; /* Bold title text */
   display: flex;
-  align-items: center;
+  align-items: center; /* Center brand vertically */
 }
 
-.navbar .navbar-brand i {
-  color: #007aff; /* Apple-like blue for small accents */
-  font-size: 1.5rem;
-  margin-right: 10px;
+.navbar .nav-menu {
+  display: flex; /* Horizontal layout for items */
+  gap: 15px; /* Space between nav items */
 }
 
 .navbar .nav-item .nav-link {
-  color: #1d1d1f;
+  text-decoration: none; /* Remove link underlines */
   font-size: 1rem;
-  font-weight: 500;
-  margin: 0 15px;
-  text-decoration: none;
+  color: #1d1d1f; /* Dark text for links */
   transition: color 0.3s ease-in-out;
 }
 
 .navbar .nav-item .nav-link:hover {
-  color: #007aff; /* Subtle hover effect */
+  color: #007aff; /* Blue hover effect */
+}
+
+/* Three Dots Button for Mobile */
+.more-options {
+  display: none; /* Initially hidden on large screens */
+  color: #000000; /* Black dots for visibility */
+  background: none; /* Transparent background */
+  border: none; /* Remove border */
+  font-size: 24px; /* Large font for dots */
+  cursor: pointer;
+}
+
+/* Dropdown Styling */
+.more-dropdown {
+  display: none; /* Hidden by default */
+  position: absolute; /* Positioned relative to navbar */
+  top: 60px; /* Dropdown appears below the navbar */
+  right: 10px; /* Align to the right side */
+  background-color: #ffffff; /* White background for dropdown */
+  border: 1px solid #000000; /* Black border for visibility */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  z-index: 1000; /* Ensure it appears on top */
+  width: 200px; /* Fixed width for dropdown */
+}
+
+.more-dropdown a {
+  display: block; /* Stack dropdown items */
+  padding: 10px 15px; /* Padding for links */
+  color: #000000; /* Black text for dropdown links */
+  text-decoration: none; /* Remove underlines */
+  transition: background-color 0.2s ease;
+}
+
+.more-dropdown a:hover {
+  background-color: #f0f0f5; /* Light grey hover */
+}
+
+/* Showing the Dropdown when 'open' class is active */
+.more-options.open + .more-dropdown {
+  display: block; /* Show dropdown when toggled */
+}
+
+/* Responsive Design for Mobile */
+@media (max-width: 768px) {
+  .nav-menu {
+    display: none; /* Hide full menu on small screens */
+  }
+
+  .more-options {
+    display: block; /* Show the three dots button */
+  }
 }
 
 /* Alerts */
@@ -155,10 +215,10 @@ table {
   overflow: hidden;
 }
 
-table th, table td {
-  padding: 15px 20px;
-  border-bottom: 1px solid #e0e0e0;
-  text-align: left;
+table th {
+  background-color: #f9f9f9; /* Light grey background */
+  font-weight: 600;
+  color: #000000; /* Explicitly set text color to black */
 }
 
 table th {
@@ -278,4 +338,3 @@ a:hover {
   color: #007aff; /* Apple-like blue for ranking highlight */
   margin-top: 10px;
 }
-
