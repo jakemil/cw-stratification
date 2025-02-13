@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, flash, jsonify, redirect,
 from flask_login import login_required, current_user
 from sqlalchemy.sql.sqltypes import NULLTYPE
 
-from .models import Note, Info, Stratification, User, Feedback
+from .models import Note, Info, Stratification, User, Feedback, Supervisor_Notes
 from . import db
 import json
 import random
@@ -14,25 +14,46 @@ views = Blueprint('views', __name__)
 @login_required
 def home():
     if request.method == 'POST':
-        note = request.form.get('note')  # Gets the note from the HTML
-
-        # Check if the user already has a note
-        existing_notes = Note.query.filter_by(user_id=current_user.id).all()
-        if existing_notes:
-            # Call the delete_note logic
-            for existing_note in existing_notes:
-                db.session.delete(existing_note)
+        note = request.form.get('note') # Gets the note from the HTML
+        supervisor_note = request.form.get('supervisor_note')
+        submit_type = request.form.get("submit_type")
+        # Check which button was pressed
+        if submit_type == "user_note":
+            existing_notes = Note.query.filter_by(user_id=current_user.id).all()
+            if existing_notes:
+                # Call the delete_note logic
+                for existing_note in existing_notes:
+                    db.session.delete(existing_note)
+                db.session.commit()
+                flash('Previous narrative deleted. Submitting Updated n=Narrative.', category='success')
+            elif len(note) < 1:
+                flash('Narrative is too short!', category='error')
+            elif len(note) > 1300:
+                flash('Narrative is too long! (>=1500)', category='error')
+            else:
+                flash('Narrative submitted!', category='success')
+            new_note = Note(data=note, user_id=current_user.id)  # Provide the schema for the note
+            db.session.add(new_note)  # Add the note to the database
             db.session.commit()
-            flash('Previous narrative deleted. Submitting updated narrative.', category='success')
-        elif len(note) < 1:
-            flash('Narrative is too short!', category='error')
-        elif len(note) > 1300:
-            flash('Narrative is too long! (>=1500)', category='error')
-        else:
-            flash('Narrative submitted!', category='success')
-        new_note = Note(data=note, user_id=current_user.id)  # Provide the schema for the note
-        db.session.add(new_note)  # Add the note to the database
-        db.session.commit()
+
+        # Check which button was pressed
+        elif submit_type == "supervisor_note":
+            existing_notes = Supervisor_Notes.query.filter_by(user_id=current_user.id).all()
+            if existing_notes:
+                # Call the delete_note logic
+                for existing_note in existing_notes:
+                    db.session.delete(existing_note)
+                db.session.commit()
+                flash('Previous Supervisor Note deleted. Submitting Updated Evaluation.', category='success')
+            elif len(supervisor_note) < 1:
+                flash('Evaluation is too short!', category='error')
+            elif len(supervisor_note) > 200:
+                flash('Evaluation is too long! (>=200)', category='error')
+            else:
+                flash('Evaluation submitted!', category='success')
+            new_note = Supervisor_Notes(data=supervisor_note, user_id=current_user.id)  # Provide the schema for the note
+            db.session.add(new_note)  # Add the note to the database
+            db.session.commit()
 
     return render_template("home.html", user=current_user)
 
@@ -111,20 +132,6 @@ def info():
         user=current_user,
         info=user_info
     )
-
-
-@views.route('/delete-note', methods=['POST'])
-@login_required
-def delete_note():
-    note = json.loads(request.data)  # this function expects a JSON from the INDEX.js file
-    noteId = note['noteId']
-    note = Note.query.get(noteId)
-    if note:
-        if note.user_id == current_user.id:
-            db.session.delete(note)
-            db.session.commit()
-
-    return jsonify({})
 
 
 @views.route('/admin-dashboard', methods=['GET'])

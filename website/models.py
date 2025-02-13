@@ -49,4 +49,7 @@ class User(db.Model, UserMixin):
     first_name = db.Column(db.String(150))
     last_name = db.Column(db.String(150))
     notes = db.relationship('Note')
+    supervisor_notes = db.relationship('Supervisor_Notes')
+    feedback = db.relationship('Feedback')
+    stratification = db.relationship('Stratification')
     info = db.relationship('Info')
