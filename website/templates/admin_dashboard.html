@@ -49,7 +49,7 @@
                             <th>Prof ELO</th>
                             <th>Lead ELO</th>
                             <th>Char ELO</th>
-                            <th>Note</th>
+                            <th>Narrative/Sup Eval</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -62,11 +62,11 @@
                                 <td>{{ user.professionalism_elo if user.professionalism_elo is not none else 'N/A' }}</td>
                                 <td>{{ user.leadership_elo if user.leadership_elo is not none else 'N/A' }}</td>
                                 <td>{{ user.character_elo if user.character_elo is not none else 'N/A' }}</td>
-                                <td>
-                                  <button class="btn btn-outline-primary-black btn-sm rounded-pill" 
-                                          onclick="showNoteModal(`{{ user.note_data }}`)">
-                                      View Narrative
-                                  </button>
+                                <td colspan="2">
+                                    <button class="btn btn-outline-primary-black btn-sm rounded-pill" style = "width: 80%"
+                                            onclick="showNoteModal(`{{ user.note_data }}`, `{{ user.supervisor_data }}`)">
+                                        View Notes
+                                    </button>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -84,7 +84,7 @@
   <div class="modal-dialog" role="document">
       <div class="modal-content">
           <div class="modal-header">
-              <h5 class="modal-title" id="noteModalLabel">User Narrative</h5>
+              <h5 class="modal-title" id="noteModalLabel">Performance Data</h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true">&times;</span>
               </button>
@@ -101,10 +101,29 @@
         const selectedYear = document.getElementById("classYearDropdown").value;
         window.location.href = "/admin-dashboard?class_year=" + selectedYear;
     }
-    function showNoteModal(noteData) {
-        console.log("Note Data:", noteData); // Debugging: Check if data is passed
+    function showNoteModal(noteData, supervisorData) {
+        console.log("Note Data:", noteData); // Debugging: Check if note data is passed
+        console.log("Supervisor Data:", supervisorData); // Debugging: Check if supervisor data is passed
+
+        // Sanitize the input data
         const sanitizedNote = noteData || "No note available";
-        document.getElementById("noteContent").textContent = sanitizedNote;
+        const sanitizedSupervisorNote = supervisorData || "No supervisor evaluation available";
+
+        // Combine both notes into a formatted content
+        const combinedContent = `
+            <div>
+                <h5>User Narrative:</h5>
+                <p>${sanitizedNote}</p>
+                <hr>
+                <h5>Supervisor Evaluation:</h5>
+                <p>${sanitizedSupervisorNote}</p>
+            </div>
+        `;
+
+        // Inject the combined content into the modal
+        document.getElementById("noteContent").innerHTML = combinedContent;
+
+        // Display the modal (Bootstrap modal show function)
         $('#noteModal').modal('show');
     }
 </script>

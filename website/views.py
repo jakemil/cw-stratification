@@ -47,7 +47,7 @@ def home():
                 flash('Previous Supervisor Note deleted. Submitting Updated Evaluation.', category='success')
             elif len(supervisor_note) < 1:
                 flash('Evaluation is too short!', category='error')
-            elif len(supervisor_note) > 200:
+            elif len(supervisor_note) > 300:
                 flash('Evaluation is too long! (>=200)', category='error')
             else:
                 flash('Evaluation submitted!', category='success')
@@ -56,6 +56,11 @@ def home():
             db.session.commit()
 
     return render_template("home.html", user=current_user)
+
+@views.route('/select-phase', methods=['GET', 'POST'])
+@login_required
+def select_phase():
+    return render_template("select_phase.html", user=current_user)
 
 
 @views.route('/info', methods=['GET', 'POST'])
@@ -153,10 +158,12 @@ def admin_dashboard():
         Stratification.professionalism_elo,
         Stratification.leadership_elo,
         Stratification.character_elo,
-        Note.data.label("note_data")
+        Note.data.label("note_data"),
+        Supervisor_Notes.data.label("supervisor_data")
     ).join(Info, User.id == Info.user_id) \
         .join(Stratification, User.id == Stratification.user_id, isouter=True) \
         .join(Note, User.id == Note.user_id, isouter=True) \
+        .join(Supervisor_Notes, User.id == Supervisor_Notes.user_id, isouter=True) \
         .filter(Info.squadron == admin_info.squadron)
 
     print(class_year)

@@ -301,6 +301,15 @@ a:hover {
   text-align: center;
 }
 
+
+.card a {
+    color: #007aff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+.card a:hover {
+    color: rgba(0, 94, 203, 0.36);
+}
 /* Metrics Card Grid */
 .metrics-container {
   display: grid;

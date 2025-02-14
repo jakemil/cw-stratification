@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<body>
+    <style>
+        .container {
+        display: flex; /* Use flexbox for layout */
+        flex-direction: column; /* Stack items vertically */
+        align-items: center; /* Center the cards horizontally */
+        gap: 20px; /* Add spacing between the cards */
+        height: 100%; /* Stretch container to fit the content */
+        }
+    </style>
+    <h1>Select Phase of Stratification</h1>
+    <!-- Wrapper for the card content, leaving navbar untouched -->
+    <div class="content-wrapper">
+        <div class="container">
+            <!-- Phase I -->
+            <div class="card">
+                <a href="/strat-users">
+                    <h4>Phase I: Perform Binary Comparisons</h4>
+                </a>
+            </div>
+
+            <!-- Phase II -->
+            <div class="card">
+                <a href="/strat-users">
+                    <h4>Phase II: Perform Bubble Sort</h4>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+{% endblock %}

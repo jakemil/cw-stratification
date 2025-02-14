@@ -25,7 +25,7 @@ class Info(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     group = db.Column(db.Integer) #integer to store cadet group
     squadron = db.Column(db.Integer) #integer to store cadet squadron
-    flight = db.Column(db.String(10)) #string to store cadet flight
+    flight = db.Column(db.String(20)) #string to store cadet flight
     class_year = db.Column(db.Integer) # integer to store class year
     admin = db.Column(db.Integer) #integer to store squadron/group/wing admin right
     user_id = db.Column(db.Integer, db.ForeignKey('user.id')) #uses foreign key to connect to user
