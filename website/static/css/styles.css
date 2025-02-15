@@ -300,8 +300,9 @@ a:hover {
   margin-bottom: 30px;
   text-align: center;
 }
-
-
+.text-blue {
+    color: #007aff;
+}
 .card a {
     color: #007aff;
     text-decoration: none;

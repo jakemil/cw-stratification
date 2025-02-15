@@ -20,7 +20,8 @@
   <body>
     <nav class="navbar navbar-expand-lg">
       <a class="navbar-brand" href="/">
-        <i class="fa fa-pencil-square-o"></i>  Write Narrative
+        <i class="fa fa-pencil-square-o text-blue"></i>&nbsp;
+        <span class="text-blue">Write Narrative</span>
       </a>
       <button
         class="navbar-toggler"
@@ -34,7 +35,7 @@
         <div class="navbar-nav ml-auto">
           {% if user.is_authenticated and info and info.admin is not none %}
           <a class="nav-item nav-link" href="/info">Info</a>
-          <a class="nav-item nav-link" href="/metrics">Metrics</a>
+              <a class="nav-item nav-link" href="/metrics">Metrics</a>
           <a class="nav-item nav-link" href="/admin-dashboard">Admin Dashboard</a>
           <a class="nav-item nav-link" href="/select-phase">Stratify Users</a>
           <a class="nav-item nav-link text-danger" href="/logout">Logout</a>
