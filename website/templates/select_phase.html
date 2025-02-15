@@ -3,6 +3,8 @@
 {% block title %}Admin Dashboard{% endblock %}
 
 {% block content %}
+
+<h1>Select Phase of Stratification</h1>
 <body>
     <style>
         .container {
@@ -13,21 +15,22 @@
         height: 100%; /* Stretch container to fit the content */
         }
     </style>
-    <h1>Select Phase of Stratification</h1>
     <!-- Wrapper for the card content, leaving navbar untouched -->
     <div class="content-wrapper">
         <div class="container">
             <!-- Phase I -->
             <div class="card">
-                <a href="/strat-users">
-                    <h4>Phase I: Perform Binary Comparisons</h4>
+                <a href="/strat-users" style="display: flex; align-items: center; justify-content: space-between; text-decoration: none;">
+                    <h4 style="margin: 0;">Phase I: Perform Binary Comparisons</h4>
+                    <img src="https://cdn-icons-png.flaticon.com/512/7960/7960350.png" alt="icon" style="width: 30px; height: 30px; margin-left: 10px;">
                 </a>
             </div>
 
             <!-- Phase II -->
             <div class="card">
-                <a href="/strat-users">
-                    <h4>Phase II: Perform Bubble Sort</h4>
+                <a href="/strat-users" style="display: flex; align-items: center; text-decoration: none;">
+                    <h4 style="margin: 0;">Phase II: Perform Bubble Sort</h4>
+                    <img src="https://static-00.iconduck.com/assets.00/sort-icon-512x454-fhtmqe4h.png" alt="icon" style="width: 30px; height: 30px; margin-left: 10px;">
                 </a>
             </div>
         </div>
