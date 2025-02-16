@@ -5,6 +5,22 @@
 {% block content %}
 <div class="container mt-5">
     <div class="row">
+        <div class="col-md-12">
+            <form method="GET" class="mb-3 d-flex justify-content-center">
+                <label for="class_year" class="me-2 fw-bold">Filter by Class Year:  </label>
+                <select name="class_year" id="class_year" class="form-select w-auto rounded-pill shadow-sm border-primary text-center" style="min-width: 200px;"  onchange="this.form.submit()">
+                    <option value="">All</option>
+                    {% for year in class_years %}
+                        <option value="{{ year }}" {% if class_year == year %}selected{% endif %}>
+                            {{ year }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
         <!-- Left Side: Ranked User List -->
         <div class="col-md-4">
             <h3 class="text-center">Ranked Users</h3>
@@ -29,11 +45,10 @@
             </div>
         </div>
 
-        <!-- Right Side: Narratives and Feedback -->
+        <!-- Right Side: User Performance -->
         <div class="col-md-8">
             <h3 class="text-center">User Performance</h3>
 
-            <!-- Feedback Form at the Top -->
             {% if selected_user %}
                 <div class="card shadow mb-3">
                     <div class="card-body">

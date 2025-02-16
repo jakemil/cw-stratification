@@ -181,12 +181,15 @@ def admin_dashboard():
 def phase_two():
     class_year = request.args.get('class_year', type=int)
     selected_user_id = request.args.get('selected_user', type=int)
-    action = request.form.get('action')  # Captures button press action (move up/down)
+    action = request.form.get('action')
     page = request.args.get('page', 1, type=int)
 
     admin_info = Info.query.filter_by(user_id=current_user.id).first()
     if not admin_info:
         return "Unauthorized Access", 403
+
+    # Get distinct class years for the dropdown
+    class_years = [row[0] for row in db.session.query(Info.class_year).distinct().order_by(Info.class_year.asc()).all()]
 
     query = db.session.query(
         User.id,
@@ -207,7 +210,7 @@ def phase_two():
     query = query.order_by(Stratification.overall_elo.desc().nullslast(), User.last_name, User.first_name)
     users_paginated = query.paginate(page=page, error_out=False)
     users = users_paginated.items
-    all_users = query.all()  # Get full sorted list
+    all_users = query.all()
 
     selected_user = None
     above_user = None
@@ -222,7 +225,6 @@ def phase_two():
             if user_index < len(all_users) - 1:
                 below_user = all_users[user_index + 1]
 
-            # Handle rank change actions
             if action == "move_up" and above_user:
                 swap_elos(selected_user.id, above_user.id)
                 return redirect(url_for('views.phase_two', class_year=class_year, selected_user=selected_user_id))
@@ -258,11 +260,10 @@ def phase_two():
         selected_user=selected_user,
         above_user=above_user,
         below_user=below_user,
-        squadron=admin_info.squadron,
         class_year=class_year,
+        class_years=class_years,
         pagination=users_paginated
     )
-
 
 def swap_elos(user1_id, user2_id):
     """ Swaps the ELO scores between two users. """
