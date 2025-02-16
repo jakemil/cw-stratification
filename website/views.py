@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for
 from flask_login import login_required, current_user
+from collections import namedtuple
 from sqlalchemy.sql.sqltypes import NULLTYPE
 
 from .models import Note, Info, Stratification, User, Feedback, Supervisor_Notes
@@ -173,6 +174,104 @@ def admin_dashboard():
     users = query.order_by(Stratification.overall_elo.desc().nullslast(), User.last_name, User.first_name).all()
 
     return render_template("admin_dashboard.html", users=users, squadron=admin_info.squadron, class_year=class_year)
+
+
+@views.route('/phase-two', methods=['GET', 'POST'])
+@login_required
+def phase_two():
+    class_year = request.args.get('class_year', type=int)
+    selected_user_id = request.args.get('selected_user', type=int)
+    action = request.form.get('action')  # Captures button press action (move up/down)
+    page = request.args.get('page', 1, type=int)
+
+    admin_info = Info.query.filter_by(user_id=current_user.id).first()
+    if not admin_info:
+        return "Unauthorized Access", 403
+
+    query = db.session.query(
+        User.id,
+        User.first_name,
+        User.last_name,
+        Stratification.overall_elo,
+        Note.data.label("note_data"),
+        Supervisor_Notes.data.label("supervisor_data")
+    ).join(Info, User.id == Info.user_id) \
+        .join(Stratification, User.id == Stratification.user_id, isouter=True) \
+        .join(Note, User.id == Note.user_id, isouter=True) \
+        .join(Supervisor_Notes, User.id == Supervisor_Notes.user_id, isouter=True) \
+        .filter(Info.squadron == admin_info.squadron)
+
+    if class_year:
+        query = query.filter(Info.class_year == class_year)
+
+    query = query.order_by(Stratification.overall_elo.desc().nullslast(), User.last_name, User.first_name)
+    users_paginated = query.paginate(page=page, error_out=False)
+    users = users_paginated.items
+    all_users = query.all()  # Get full sorted list
+
+    selected_user = None
+    above_user = None
+    below_user = None
+
+    if selected_user_id:
+        user_index = next((i for i, u in enumerate(all_users) if u.id == selected_user_id), None)
+        if user_index is not None:
+            selected_user = all_users[user_index]
+            if user_index > 0:
+                above_user = all_users[user_index - 1]
+            if user_index < len(all_users) - 1:
+                below_user = all_users[user_index + 1]
+
+            # Handle rank change actions
+            if action == "move_up" and above_user:
+                swap_elos(selected_user.id, above_user.id)
+                return redirect(url_for('views.phase_two', class_year=class_year, selected_user=selected_user_id))
+            elif action == "move_down" and below_user:
+                swap_elos(selected_user.id, below_user.id)
+                return redirect(url_for('views.phase_two', class_year=class_year, selected_user=selected_user_id))
+
+    if request.method == 'POST':
+        # save feedback
+        feedback = request.form.get('feedback', None)  # Feedback for User1
+
+        try:
+            # Save feedback for user1
+            if feedback:
+                new_feedback = Feedback(
+                    admin_feedback=feedback,  # Optional duplicate if needed
+                    user_id=selected_user_id  # Use winner_id for User1 (logic can differ if needed)
+                )
+                db.session.add(new_feedback)
+
+            db.session.commit()  # Commit all changes to the database
+
+            # Flash success message and redirect
+            flash('Feedback submitted successfully!', 'success')
+
+        except Exception as e:
+            db.session.rollback()  # Rollback transaction on error
+            flash(f'Error submitting feedback: {str(e)}', 'danger')
+
+    return render_template(
+        "phase_two.html",
+        users=users,
+        selected_user=selected_user,
+        above_user=above_user,
+        below_user=below_user,
+        squadron=admin_info.squadron,
+        class_year=class_year,
+        pagination=users_paginated
+    )
+
+
+def swap_elos(user1_id, user2_id):
+    """ Swaps the ELO scores between two users. """
+    user1 = Stratification.query.filter_by(user_id=user1_id).first()
+    user2 = Stratification.query.filter_by(user_id=user2_id).first()
+
+    if user1 and user2:
+        user1.overall_elo, user2.overall_elo = user2.overall_elo, user1.overall_elo
+        db.session.commit()
 
 
 @views.route('/strat-users', methods=['GET', 'POST'])
