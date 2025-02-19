@@ -290,10 +290,16 @@ def strat_users():
         class_years = db.session.query(Info.class_year).distinct().all()
         return render_template('strat_users.html', class_years=[cy[0] for cy in class_years], users=None)
 
-    # Query for users in the same squadron and class year
-    users = db.session.query(User, Note, Stratification).join(Info, Info.user_id == User.id) \
-        .join(Note, Note.user_id == User.id) \
-        .join(Stratification, Stratification.user_id == User.id, isouter=True) \
+    # Query for users in the same squadron and class year (including those without notes or supervisor notes)
+    users = db.session.query(
+        User,
+        Note.data.label("narrative_data"),  # Make sure narrative (data) can be NULL
+        Supervisor_Notes.data.label("supervisor_data"),  # Supervisor notes can also be NULL
+        Stratification
+    ).join(Info, Info.user_id == User.id) \
+        .outerjoin(Note, Note.user_id == User.id) \
+        .outerjoin(Supervisor_Notes, Supervisor_Notes.user_id == User.id) \
+        .outerjoin(Stratification, Stratification.user_id == User.id) \
         .filter(Info.squadron == admin_info.squadron) \
         .filter(Info.class_year == class_year).all()
 
@@ -301,6 +307,7 @@ def strat_users():
         flash(f"No users found for class year {class_year} in squadron {admin_info.squadron}.", category='error')
         return redirect(url_for('views.strat_users'))
 
+    #check to ensure database is set up with comparison count
     for user in users:
         # Query the Stratification entry for the user
         test = db.session.query(Stratification).filter_by(user_id=user[0].id).first()
@@ -354,7 +361,9 @@ def strat_users():
         winner = Stratification.query.filter_by(user_id=winner_id).first()
         loser = Stratification.query.filter_by(user_id=loser_id).first()
 
-        criteria_list = ['overall', 'duty_performance', 'professionalism', 'leadership', 'character']
+        #uncomment if you want criteria
+        #criteria_list = ['overall', 'duty_performance', 'professionalism', 'leadership', 'character']
+        criteria_list = ['overall']
 
         # Ensure 'overall' is required
         overall_winner = request.form.get('overall_winner')

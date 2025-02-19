@@ -26,13 +26,15 @@
     <div class="row">
       <div class="col-md-6 text-center">
         <h4>User 1</h4>
-        <p><strong>Narrative:</strong> {{ user1.Note.data }}</p>
+        <p><strong>Narrative:</strong> {{ user1.narrative_data if user1.narrative_data else "No narrative input"}}</p>
+        <p><strong>Supervisor Evaluation:</strong> {{ user1.supervisor_data if user1.supervisor_data else "No supervisor eval input"}}</p>
         <label for="user1_feedback">Enter Feedback for User 1: </label>
         <textarea id="user1_feedback" name="user1_feedback" class="form-control" rows="3" placeholder="Enter feedback here"></textarea>
       </div>
       <div class="col-md-6 text-center">
         <h4>User 2</h4>
-        <p><strong>Narrative:</strong> {{ user2.Note.data }}</p>
+        <p><strong>Narrative:</strong> {{ user2.narrative_data if user2.narrative_data else "No narrative input"}}</p>
+        <p><strong>Supervisor Evaluation:</strong> {{ user2.supervisor_data if user2.supervisor_data else "No supervisor eval input" }}</p>
         <label for="user2_feedback">Enter  Feedback for User 2: </label>
         <textarea id="user2_feedback" name="user2_feedback" class="form-control" rows="3" placeholder="Enter feedback here"></textarea>
       </div>
