@@ -1,12 +1,8 @@
-from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for
+from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
-from collections import namedtuple
-from sqlalchemy.sql.sqltypes import NULLTYPE
 
 from .models import Note, Info, Stratification, User, Feedback, Supervisor_Notes
 from . import db
-import json
-import random
 
 views = Blueprint('views', __name__)
 
@@ -226,10 +222,10 @@ def phase_two():
                 below_user = all_users[user_index + 1]
 
             if action == "move_up" and above_user:
-                swap_elos(selected_user.id, above_user.id)
+                swap_elos(selected_user.id, above_user.id, action)
                 return redirect(url_for('views.phase_two', class_year=class_year, selected_user=selected_user_id))
             elif action == "move_down" and below_user:
-                swap_elos(selected_user.id, below_user.id)
+                swap_elos(selected_user.id, below_user.id, action)
                 return redirect(url_for('views.phase_two', class_year=class_year, selected_user=selected_user_id))
 
     if request.method == 'POST':
@@ -265,13 +261,16 @@ def phase_two():
         pagination=users_paginated
     )
 
-def swap_elos(user1_id, user2_id):
+def swap_elos(user1_id, user2_id, action):
     """ Swaps the ELO scores between two users. """
     user1 = Stratification.query.filter_by(user_id=user1_id).first()
     user2 = Stratification.query.filter_by(user_id=user2_id).first()
 
     if user1 and user2:
-        user1.overall_elo, user2.overall_elo = user2.overall_elo, user1.overall_elo
+        if action == "move_up":
+            user1.overall_elo, user2.overall_elo = (user2.overall_elo+1), user1.overall_elo
+        else:
+            user1.overall_elo, user2.overall_elo = (user2.overall_elo-1), user1.overall_elo
         db.session.commit()
 
 
