@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+
+<h1>Select Query</h1>
+<body>
+    <style>
+        .container {
+        display: flex; /* Use flexbox for layout */
+        flex-direction: column; /* Stack items vertically */
+        align-items: center; /* Center the cards horizontally */
+        gap: 20px; /* Add spacing between the cards */
+        height: 100%; /* Stretch container to fit the content */
+        }
+    </style>
+    <!-- Wrapper for the card content, leaving navbar untouched -->
+    <div class="content-wrapper">
+        <div class="container">
+            <!-- Phase I -->
+            <div class="card">
+                <a href="/staff-performance" style="display: flex; align-items: center; justify-content: space-between; text-decoration: none;">
+                    <h4 style="margin: 0;">Query I: In-Staff Job Performance</h4>
+                    <img src="https://cdn-icons-png.flaticon.com/512/11113/11113006.png" alt="icon" style="width: 30px; height: 30px; margin-left: 10px;">
+                </a>
+            </div>
+
+            <!-- Phase II -->
+            <div class="card">
+                <a href="/squad-performance" style="display: flex; align-items: center; text-decoration: none;">
+                    <h4 style="margin: 0;">Query II: Full Squadron Performance</h4>
+                    <img src="https://static.vecteezy.com/system/resources/previews/000/550/535/non_2x/user-icon-vector.jpg" alt="icon" style="width: 30px; height: 30px; margin-left: 10px;">
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+{% endblock %}

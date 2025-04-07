@@ -1,8 +1,8 @@
 from . import db
 from flask_login import UserMixin
 from sqlalchemy.sql import func
+from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.dialects.postgresql import JSON  # Use this for PostgreSQL
-
 class Feedback(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     admin_feedback = db.Column(db.String(1500), nullable=True)
@@ -39,6 +39,24 @@ class Stratification(db.Model):
     character_elo = db.Column(db.Integer)
     num_comparisons = db.Column(db.Integer, default=0) #used to balance user comparisons
     comparison_history = db.Column(JSON, default=list)  # New field to track comparisons
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+class Performance(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    overall_score = db.Column(db.Integer, default=0)
+    question_1 = db.Column(db.Integer, default=0)
+    question_1_total = db.Column(db.Integer, default=0)
+    question_2 = db.Column(db.Integer, default=0)
+    question_3 = db.Column(db.Integer, default=0)
+    question_4 = db.Column(db.Integer, default=0)
+    question_5 = db.Column(db.Integer, default=0)
+    question_6 = db.Column(db.Integer, default=0)
+    question_7 = db.Column(db.Integer, default=0)
+    question_8 = db.Column(db.Integer, default=0)
+    question_9 = db.Column(db.Integer, default=0)
+    question_10 = db.Column(db.Integer, default=0)
+    num_squad_comparisons = db.Column(db.Integer, default = 0)
+    staff_comparison_history = db.Column(MutableList.as_mutable(JSON), default=list)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 

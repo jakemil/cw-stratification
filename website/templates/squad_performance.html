@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<body>
+    <h1>Squad Performance Query</h1>
+
+    <h2>Notes:</h2>
+    <p style="font-size: 0.9em; color: black;">{{ note_data }}</p>
+
+    <h2>Supervisor Notes:</h2>
+    <p style="font-size: 0.9em; color: black;">{{ supervisor_note_data }}</p>
+
+    <form method="POST">
+        <!-- Questions -->
+        <label>Q2: Is this cadet a leader?</label>
+        <select name="question_2" required>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+        </select><br>
+
+        <label>Q3: Is this cadet actively seeking leadership opportunities outside of the squadron?</label>
+        <select name="question_3" required>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+        </select><br>
+
+        <label>Q4: Is this person actively seeking opportunities to better other people?</label>
+        <select name="question_4" required>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+        </select><br>
+
+        <label>Q5: Is this person doing more for the squadron than their squadron duty entails?</label>
+        <select name="question_5" required>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+        </select><br>
+
+        <label>Q6: Is this person excelling in an area outside of the squadron?</label>
+        <select name="question_6" required>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+        </select><br>
+
+        <label>Q7: Is this person professional with superiors and subordinates?</label>
+        <select name="question_7" required>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+        </select><br>
+
+        <label>Q8: Is this person demonstrating peer-to-peer leadership?</label>
+        <select name="question_8" required>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+        </select><br>
+
+        <label>Q9: Is this person an active participant in squadron morale events?</label>
+        <select name="question_9" required>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+        </select><br>
+
+        <label>Q10: Is this person volunteering in the local community?</label>
+        <select name="question_10" required>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+        </select><br>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <a href="{{ url_for('views.home') }}">Back to Home</a>
+</body>
+{% endblock %}

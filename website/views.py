@@ -1,7 +1,10 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
+import time
+from flask import session
+from werkzeug.http import quote_etag
 
-from .models import Note, Info, Stratification, User, Feedback, Supervisor_Notes
+from .models import Note, Info, Stratification, User, Feedback, Supervisor_Notes, Performance
 from . import db
 
 views = Blueprint('views', __name__)
@@ -59,6 +62,200 @@ def home():
 def select_phase():
     return render_template("select_phase.html", user=current_user)
 
+@views.route('/select-query', methods=['GET', 'POST'])
+@login_required
+def select_query():
+    return render_template("select_query.html", user=current_user)
+
+@views.route('/staff-performance', methods=['GET', 'POST'])
+@login_required
+def staff_performance():
+    user_info = Info.query.filter_by(user_id=current_user.id).first()
+    if not user_info:
+        flash('User info missing.', category='error')
+        return redirect(url_for('views.info'))
+
+    current_flight = user_info.flight
+    current_class_year = user_info.class_year
+
+    # Get all users in the flight (excluding self)
+    users_in_flight = Info.query.filter_by(flight=current_flight).all()
+    user_ids_in_flight = [info.user_id for info in users_in_flight if info.user_id != current_user.id]
+    info_by_id = {info.user_id: info for info in users_in_flight}
+
+    user_performance = Performance.query.filter_by(user_id=current_user.id).first()
+    if not user_performance:
+        user_performance = Performance(user_id=current_user.id, staff_comparison_history=[])
+        db.session.add(user_performance)
+        db.session.commit()
+
+    comparison_history = user_performance.staff_comparison_history or []
+
+    # Determine eligible users
+    eligible_users = []
+    for uid in user_ids_in_flight:
+        if uid in comparison_history:
+            continue
+        other_info = info_by_id.get(uid)
+        if current_class_year in [2027, 2028] and other_info.class_year == current_class_year:
+            continue
+        eligible_users.append(uid)
+
+    if not eligible_users:
+        flash("No more users available for comparison.", category="warning")
+        return redirect(url_for('views.select_query'))
+
+    # 🧠 Only pick a new user if reset_user flag is set or no one selected yet
+    if 'selected_user_id' not in session or session.get('reset_user'):
+        session['selected_user_id'] = random.choice(eligible_users)
+        session.pop('reset_user', None)
+
+    selected_user_id = session['selected_user_id']
+    selected_user = User.query.get(selected_user_id)
+    eligible_user_details = User.query.filter(User.id.in_(eligible_users)).all()
+
+    print("the selected user id is:")
+    print(selected_user_id)
+    print("the selected user name is:")
+    print(selected_user.last_name)
+
+    if request.method == 'POST':
+        score = request.form.get('score')
+        if not score or not score.isdigit() or not (0 <= int(score) <= 25):
+            flash('Invalid score. Must be 0–25.', category='error')
+            return render_template('staff_performance.html', selected_user=selected_user,
+                                   eligible_users=eligible_user_details, user=current_user)
+
+        score = int(score)
+
+        selected_perf = Performance.query.filter_by(user_id=selected_user_id).first()
+        if not selected_perf:
+            selected_perf = Performance(
+                user_id=selected_user_id,
+                num_squad_comparisons=0,
+                question_1=0, question_1_total=0,
+                question_2=0, question_3=0, question_4=0, question_5=0,
+                question_6=0, question_7=0, question_8=0, question_9=0, question_10=0,
+                overall_score=0, staff_comparison_history=[]
+            )
+            db.session.add(selected_perf)
+
+        selected_perf.question_1 = (selected_perf.question_1 or 0) + score
+        selected_perf.question_1_total = (selected_perf.question_1_total or 0) + 1
+
+        # Update history
+        if selected_user_id not in comparison_history:
+            comparison_history.append(selected_user_id)
+            user_performance.staff_comparison_history = list(comparison_history)
+
+        selected_perf.overall_score = update_total_score(selected_perf)
+
+        # ✅ Set the reset flag so GET will pick a new user
+        session['reset_user'] = True
+        db.session.commit()
+
+        flash('Score submitted!', category='success')
+        return redirect(url_for('views.staff_performance'))
+
+    return render_template(
+        'staff_performance.html',
+        selected_user=selected_user,
+        eligible_users=eligible_user_details,
+        user=current_user
+    )
+
+
+
+@views.route('/squad-performance', methods=['GET', 'POST'])
+@login_required
+def squad_performance():
+    # Step 1: Get the current user's squadron
+    user_info = Info.query.filter_by(user_id=current_user.id).first()
+    if not user_info:
+        flash('User information is not available. Please complete your profile.', category='error')
+        return redirect(url_for('views.info'))  # Redirect to the info page if the user's info is missing
+
+    current_squadron = user_info.squadron  # Get the current user's squadron
+
+    # Step 2: Retrieve all users from the same squadron
+    all_squadron_users = Info.query.filter_by(squadron=current_squadron).all()
+    if not all_squadron_users:
+        flash('No users found in your squadron.', category='error')
+        return redirect(url_for('views.home'))
+
+    # Step 3: Retrieve each user's num_squad_comparisons
+    users_with_comparisons = []
+    for user_info in all_squadron_users:
+        user = User.query.get(user_info.user_id)  # Get the User object
+        performance = Performance.query.filter_by(user_id=user.id).first()
+
+        if not performance:
+            # Initialize a Performance entry for users with no entry
+            performance = Performance(user_id=user.id, num_squad_comparisons=0, question_1 = 0,
+                question_1_total = 0, question_2=0, question_3=0,
+                question_4=0, question_5=0, question_6=0, question_7=0,
+                question_8=0, question_9=0, question_10=0, overall_score=0, staff_comparison_history=[])
+            db.session.add(performance)
+            db.session.commit()  # Save the changes to the database
+
+        # Add a filter to skip the current user
+        if user.id == current_user.id:
+            continue
+        users_with_comparisons.append((user, performance.num_squad_comparisons))
+
+    # Step 4: Find users with the least number of comparisons
+    min_comparisons = min([comp[1] for comp in users_with_comparisons])  # Find the lowest num_squad_comparisons
+    eligible_users = [comp[0] for comp in users_with_comparisons if comp[1] == min_comparisons]
+
+    # Use time as the seed and choose randomly if there are ties
+    random.seed(time.time())
+    selected_user = random.choice(eligible_users)
+
+    if request.method == 'POST':
+        # Process POST request: Collect answers to questions
+        questions = {
+            "question_2": request.form.get("question_2"),
+            "question_3": request.form.get("question_3"),
+            "question_4": request.form.get("question_4"),
+            "question_5": request.form.get("question_5"),
+            "question_6": request.form.get("question_6"),
+            "question_7": request.form.get("question_7"),
+            "question_8": request.form.get("question_8"),
+            "question_9": request.form.get("question_9"),
+            "question_10": request.form.get("question_10"),
+        }
+
+        # Update the Performance record for the selected user
+        selected_user_performance = Performance.query.filter_by(user_id=selected_user.id).first()
+        for question, response in questions.items():
+            if response == 'yes':
+                current_value = getattr(selected_user_performance, question) or 0
+                setattr(selected_user_performance, question, current_value + 1)
+
+        # Increment num_squad_comparisons
+        selected_user_performance.num_squad_comparisons += 1
+        selected_user_performance.overall_score = update_total_score(selected_user_performance)
+        print(selected_user_performance.overall_score)
+        # Commit the changes
+        db.session.commit()
+
+        flash('Squad performance review submitted successfully!', category='success')
+        return redirect(url_for('views.squad_performance'))
+
+    # Access note and supervisor note data
+    user_notes = selected_user.notes  # This will return a list of Note objects
+    supervisor_notes = selected_user.supervisor_notes  # This will return a list of SupervisorNotes objects
+    note_data = user_notes[0].data if user_notes else "No notes available"
+    supervisor_note_data = supervisor_notes[0].data if supervisor_notes else "No supervisor notes available"
+
+    # Render the template with the selected user's information
+    return render_template(
+        'squad_performance.html',
+        selected_user=selected_user,
+        user=current_user,
+        note_data=note_data,
+        supervisor_note_data=supervisor_note_data
+    )
 
 @views.route('/info', methods=['GET', 'POST'])
 @login_required
@@ -150,6 +347,7 @@ def admin_dashboard():
     query = db.session.query(
         User.first_name,
         User.last_name,
+        Performance.overall_score,
         Stratification.overall_elo,
         Stratification.duty_perform_elo,
         Stratification.professionalism_elo,
@@ -158,6 +356,7 @@ def admin_dashboard():
         Note.data.label("note_data"),
         Supervisor_Notes.data.label("supervisor_data")
     ).join(Info, User.id == Info.user_id) \
+        .join(Performance, User.id == Performance.user_id, isouter=True) \
         .join(Stratification, User.id == Stratification.user_id, isouter=True) \
         .join(Note, User.id == Note.user_id, isouter=True) \
         .join(Supervisor_Notes, User.id == Supervisor_Notes.user_id, isouter=True) \
@@ -167,7 +366,7 @@ def admin_dashboard():
     if class_year:
         query = query.filter(Info.class_year == class_year)
 
-    users = query.order_by(Stratification.overall_elo.desc().nullslast(), User.last_name, User.first_name).all()
+    users = query.order_by(Performance.overall_score.desc().nullslast(), User.last_name, User.first_name).all()
 
     return render_template("admin_dashboard.html", users=users, squadron=admin_info.squadron, class_year=class_year)
 
@@ -191,10 +390,12 @@ def phase_two():
         User.id,
         User.first_name,
         User.last_name,
+        Performance.overall_score,
         Stratification.overall_elo,
         Note.data.label("note_data"),
         Supervisor_Notes.data.label("supervisor_data")
     ).join(Info, User.id == Info.user_id) \
+        .join(Performance, User.id == Performance.user_id, isouter=True) \
         .join(Stratification, User.id == Stratification.user_id, isouter=True) \
         .join(Note, User.id == Note.user_id, isouter=True) \
         .join(Supervisor_Notes, User.id == Supervisor_Notes.user_id, isouter=True) \
@@ -203,7 +404,7 @@ def phase_two():
     if class_year:
         query = query.filter(Info.class_year == class_year)
 
-    query = query.order_by(Stratification.overall_elo.desc().nullslast(), User.last_name, User.first_name)
+    query = query.order_by(Performance.overall_score.desc().nullslast(), User.last_name, User.first_name)
     users_paginated = query.paginate(page=page, error_out=False)
     users = users_paginated.items
     all_users = query.all()
@@ -222,10 +423,10 @@ def phase_two():
                 below_user = all_users[user_index + 1]
 
             if action == "move_up" and above_user:
-                swap_elos(selected_user.id, above_user.id, action)
+                swap_scores(selected_user.id, above_user.id, action)
                 return redirect(url_for('views.phase_two', class_year=class_year, selected_user=selected_user_id))
             elif action == "move_down" and below_user:
-                swap_elos(selected_user.id, below_user.id, action)
+                swap_scores(selected_user.id, below_user.id, action)
                 return redirect(url_for('views.phase_two', class_year=class_year, selected_user=selected_user_id))
 
     if request.method == 'POST':
@@ -260,6 +461,19 @@ def phase_two():
         class_years=class_years,
         pagination=users_paginated
     )
+
+def swap_scores(user1_id, user2_id, action):
+    """ Swaps the ELO scores between two users. """
+    user1 = Performance.query.filter_by(user_id=user1_id).first()
+    user2 = Performance.query.filter_by(user_id=user2_id).first()
+
+    if user1 and user2:
+        if action == "move_up":
+            user1.overall_score, user2.overall_score = (user2.overall_score+1), user1.overall_score
+        else:
+            user1.overall_score, user2.overall_score = (user2.overall_score-1), user1.overall_score
+        db.session.commit()
+
 
 def swap_elos(user1_id, user2_id, action):
     """ Swaps the ELO scores between two users. """
@@ -555,3 +769,60 @@ def metrics():
         category_labels=['Overall', 'Duty Performance', 'Professionalism', 'Leadership', 'Character'],
         feedbacks=feedback_texts
     )
+
+
+def update_total_score(performance):
+    """
+    Calculate and update the overall score for a given Performance record.
+
+    Parameters:
+        performance (Performance): A Performance object containing response data for all questions (1-10).
+
+    Behavior:
+        - Averages JSON values for question_one (0-20 scale) directly.
+        - Averages JSON values for questions two through ten (binary 0/1 values).
+        - Applies weighted percentages to each question's score.
+        - Updates the overall_score field in the Performance object.
+
+    Returns:
+        float: The calculated overall score.
+    """
+    if not performance:
+        return None  # Exit early if no performance object exists
+
+    # Define weights for each question:
+    weights = {
+        "question_1": 0.25,  # 25%
+        "question_2": 0.1563,  # 15.63%
+        "question_3": 0.1198,  # 11.98%
+        "question_4": 0.1146,  # 11.46%
+        "question_5": 0.1094,  # 10.94%
+        "question_6": 0.1042,  # 10.42%
+        "question_7": 0.0573,  # 5.73%
+        "question_8": 0.0521,  # 5.21%
+        "question_9": 0.0208,  # 2.08%
+        "question_10": 0.0156  # 1.56%
+    }
+
+    # Calculate weighted scores for each question
+    weighted_scores = {}
+
+    # Question one is averaged directly (0-25 scale)
+    if performance.question_1_total > 0:
+        weighted_scores["question_1"] = (performance.question_1 / performance.question_1_total) * .01
+
+    num_comparisons = performance.num_squad_comparisons
+    # Questions two to ten are binary (0/1) and averaged similarly
+    if num_comparisons > 0:
+        for question in range(2, 11):
+            question_key = f"question_{question}"
+            # Calculate the average for the current question
+            question_total = getattr(performance, question_key, 0)
+            print(question_total)
+            average = question_total / num_comparisons  # Prevent division by zero
+            # Apply the weight to the average score
+            weighted_scores[question_key] = average * weights[question_key]
+    print(weighted_scores)
+    # Sum all weighted scores to get the overall score
+    overall_score = sum(weighted_scores.values()) * 100
+    return overall_score

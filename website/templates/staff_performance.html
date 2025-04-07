@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+
+<body>
+    <h1>Staff Performance Query</h1>
+    <h2>Users Left in Your Flight to Compare</h2>
+    <ul>
+        {% if eligible_users %}
+            {% for user in eligible_users %}
+                <li>{{ user.first_name }} {{ user.last_name }}</li>
+            {% endfor %}
+        {% else %}
+            <li>No users left to compare in your flight.</li>
+        {% endif %}
+    </ul>
+    {% if selected_user %}
+        <p>Rate the job performance of <b>{{ selected_user.first_name }} {{ selected_user.last_name }}</b> on a scale of 0 to 25:</p>
+        <form method="POST">
+            <label for="score">Score:</label>
+            <input type="number" id="score" name="score" min="0" max="25" required>
+            <button type="submit">Submit</button>
+        </form>
+    {% else %}
+        <p>No eligible users found for comparison.</p>
+    {% endif %}
+
+    <a href="{{ url_for('views.home') }}">Back to Home</a>
+</body>
+
+{% endblock %}

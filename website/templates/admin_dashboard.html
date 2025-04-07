@@ -44,6 +44,7 @@
                         <tr>
                             <th>Last Name</th>
                             <th>First Name</th>
+                            <th>Performance Calculation</th>
                             <th>Overall ELO</th>
                             <th>Duty ELO</th>
                             <th>Prof ELO</th>
@@ -57,6 +58,7 @@
                             <tr>
                                 <td>{{ user.last_name }}</td>
                                 <td>{{ user.first_name }}</td>
+                                <td>{{ "%.2f"|format(user.overall_score if user.overall_score is not none else 0.0) }}</td>
                                 <td>{{ user.overall_elo if user.overall_elo is not none else 'N/A' }}</td>
                                 <td>{{ user.duty_perform_elo if user.duty_perform_elo is not none else 'N/A' }}</td>
                                 <td>{{ user.professionalism_elo if user.professionalism_elo is not none else 'N/A' }}</td>
