@@ -105,8 +105,8 @@ def staff_performance():
         flash("No more users available for comparison.", category="warning")
         return redirect(url_for('views.select_query'))
 
-    # 🧠 Only pick a new user if reset_user flag is set or no one selected yet
-    if 'selected_user_id' not in session or session.get('reset_user'):
+    # 🧠 Only pick a new user if reset_user flag is set, no one selected yet, or when navigating back
+    if 'selected_user_id' not in session or session.get('reset_user') or request.method == 'GET':
         session['selected_user_id'] = random.choice(eligible_users)
         session.pop('reset_user', None)
 
