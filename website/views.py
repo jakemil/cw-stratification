@@ -9,22 +9,6 @@ from . import db
 
 views = Blueprint('views', __name__)
 
-
-@views.route('/update-thomas-score')
-def update_thomas_score():
-    user = User.query.filter_by(first_name="Thomas", last_name="Blalock").first()
-
-    if not user:
-        return "User not found."
-
-    perf = Performance.query.filter_by(user_id=user.id).first()
-
-    if not perf:
-        return "Performance record not found."
-
-    return f"Updated Thomas Blalock's score to {perf.question_1}"
-
-
 @views.route('/', methods=['GET', 'POST'])
 @login_required
 def home():
