@@ -191,10 +191,11 @@ def squad_performance():
 
         if not performance:
             # Initialize a Performance entry for users with no entry
-            performance = Performance(user_id=user.id, num_squad_comparisons=0, question_1 = 0,
-                question_1_total = 0, question_2=0, question_3=0,
-                question_4=0, question_5=0, question_6=0, question_7=0,
-                question_8=0, question_9=0, question_10=0, overall_score=0, staff_comparison_history=[])
+            performance = Performance(user_id=user.id, num_squad_comparisons=0, question_1=0,
+                                      question_1_total=0, question_2=0, question_3=0,
+                                      question_4=0, question_5=0, question_6=0, question_7=0,
+                                      question_8=0, question_9=0, question_10=0, overall_score=0,
+                                      staff_comparison_history=[])
             db.session.add(performance)
             db.session.commit()  # Save the changes to the database
 
@@ -207,9 +208,16 @@ def squad_performance():
     min_comparisons = min([comp[1] for comp in users_with_comparisons])  # Find the lowest num_squad_comparisons
     eligible_users = [comp[0] for comp in users_with_comparisons if comp[1] == min_comparisons]
 
-    # Use time as the seed and choose randomly if there are ties
-    random.seed(time.time())
-    selected_user = random.choice(eligible_users)
+    # 🧠 Implement the reset flag technique for selecting the user
+    if 'selected_user_id' not in session or session.get('reset_user'):
+        # Use time as the seed and choose randomly if there are ties
+        random.seed(time.time())
+        selected_user = random.choice(eligible_users)  # Randomly select the user
+        session['selected_user_id'] = selected_user.id
+        session.pop('reset_user', None)  # Reset the flag
+    else:
+        selected_user_id = session['selected_user_id']
+        selected_user = User.query.get(selected_user_id)
 
     if request.method == 'POST':
         # Process POST request: Collect answers to questions
@@ -236,7 +244,9 @@ def squad_performance():
         selected_user_performance.num_squad_comparisons += 1
         selected_user_performance.overall_score = update_total_score(selected_user_performance)
         print(selected_user_performance.overall_score)
-        # Commit the changes
+
+        # ✅ Set the reset flag so a new user is selected on the next GET
+        session['reset_user'] = True
         db.session.commit()
 
         flash('Squad performance review submitted successfully!', category='success')
@@ -256,6 +266,7 @@ def squad_performance():
         note_data=note_data,
         supervisor_note_data=supervisor_note_data
     )
+
 
 @views.route('/info', methods=['GET', 'POST'])
 @login_required
