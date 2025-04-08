@@ -22,7 +22,7 @@ def update_thomas_score():
     if not perf:
         return "Performance record not found."
 
-    perf.overall_score -= 5
+    perf.question_1 += 5
     db.session.commit()
     return f"Updated Thomas Blalock's score to {perf.overall_score}"
 
