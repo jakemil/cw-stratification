@@ -1,13 +1,56 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
 import time
-from flask import session
+from flask import session, render_template_string
 from werkzeug.http import quote_etag
 
 from .models import Note, Info, Stratification, User, Feedback, Supervisor_Notes, Performance
 from . import db
 
 views = Blueprint('views', __name__)
+
+@views.route('/export-staff-comparison-history', methods=['GET'])
+def export_staff_comparison_history():
+    """
+    Standalone route to display each user's last name, first name,
+    and the number of items in their staff_comparison_history.
+    """
+    # Query all users
+    users = User.query.all()
+    output_lines = []
+
+    for user in users:
+        # Check if the user has a related Performance entry
+        performance = Performance.query.filter_by(user_id=user.id).first()
+
+        # Get the number of items in staff_comparison_history, or 0 if not available
+        if performance and performance.staff_comparison_history:
+            num_of_items = len(performance.staff_comparison_history)
+        else:
+            num_of_items = 0
+
+        # Construct the output line for the user
+        output_lines.append(f"{user.last_name}, {user.first_name}: {num_of_items}")
+
+    # Generate a simple HTML page to render the results
+    html_template = """
+    <html>
+        <head>
+            <title>Export Staff Comparison History</title>
+        </head>
+        <body>
+            <h1>Staff Comparison History</h1>
+            <pre>
+{{ output_content }}
+            </pre>
+        </body>
+    </html>
+    """
+
+    # Render the output as plain text in the browser
+    return render_template_string(html_template, output_content="\n".join(output_lines))
+
+
 
 @views.route('/', methods=['GET', 'POST'])
 @login_required
